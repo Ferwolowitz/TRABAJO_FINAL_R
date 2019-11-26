@@ -8,7 +8,7 @@ output:
 thumbnails: true
 lightbox: true
 gallery: false
-highlight: tango
+highlight: espresso
 
 ---
 <script>
@@ -23,14 +23,21 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r  message = FALSE, echo = FALSE}
-library(rmdformats) 
-library(dplyr)
-library(rvest)
-library(reshape2)
-library(ggplot2)
+library(rmdformats) #1
+library(dplyr) #2
+library(rvest) #3
+library(reshape2)#4
+library(ggplot2)#5
+library(knitr)#6
+library(kableExtra) #7
+library(stringr) #8
+library(ggthemes) #9
 ```
 
-
+# **INTRODUCCIÓN**
+<div class=text-justify>
+Este es el trabajo final de la asignatura "Introducción a R". Está realizado por el alumno Fernando Martínez. En él, se hara un repaso al contenido impartido en la asignatura, desde el tratamiento de tablas y vectores hasta el webscrapping. Se han usado diferentes librerías y métodos de tratamiento de datos. Se pretende hacer un comentario sobre las variables estadísticas que se muestran, espero que sea lo más certero posible dentro de mi alcance,
+</div>
 ## **1. Expresiones regulares**
 <div class=text-justify>
 Las **expresiones regulares** (regex) son una herramienta para buscar cadenas de texto a través de una serie de sintaxis intrincada, son herramientas poderosas para usar en acciones como la búsqueda o la coincidencia de patrones.
@@ -88,6 +95,10 @@ En este ejemplo sobre listas, aprovecho para destacar las páginas de consulta q
 
 2. [DataDreaming](https://www.datadreaming.org/post/r-markdown-theme-gallery)
 
+3. [RMarkdown](https://rmarkdown.rstudio.com/index.html)
+
+Sin lugar a dudas, la mejor opción para iniciarse en el mundo de Markdown es la tercera. En esa página, se explica detalladamente todos los elementos necesarios para crear un buen documento HTML. En principio, muestra sólo lo que contiene el paquete básico, pero acompañándola con el dominio de RStudio y con búsquedas por internet, tienes la posibilidad de crear un documento muy digno y con un esfuerzo relativamente bajo. 
+
 ### 2.5. Incluir gráficos
 
 Como comentaba en el punto 2.1. también es posible incluir gráficos, utilidad que veremos en profundidad en siguentes apartados.
@@ -144,19 +155,23 @@ murdcast <- dcast(murcia, Gender+Periodo~Situation)
 Voy a evaluar los datos de paro en Murcia a lo largo de la historia (léase historia como el periodo tiempo que incluye el archivo). La siguiente tabla incluye todas las variables que presenta el archivo paro.
 
 ```{r echo = FALSE}
-head(paro, 3)
+kable(paro[1:6,]) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
 Como el archivo está demasiado sucio e incomprensible a simple vista, voy a seleccionar usando el paquete `dplyr`, solo los datos históricos que pertenezcan a Murcia.
 
 ```{r echo = FALSE}
-head(paro1, 3)
+kable(paro1[1:6,]) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
 Una vez seleccionada Murcia, elimino la columna `Provinces` porque ya no aporta ningún valor. Además, voy a poner la tabla en formato ancho usando `dcast` porque me intersa saber qué tipo de trabajador hay en cada periodo de forma rápida y visual. Para ello, también he ordenado la tabla por periodo.
 
 ```{r echo = FALSE}
-head(murdcast, 3)
+kable(murdcast[1:6,]) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
 ```
 </div>
 
@@ -164,16 +179,9 @@ head(murdcast, 3)
 
 <div class=text-justify>
 
-De cara a realizar un gráfico, voy a sustituir todos los `Qi` por su correspondiente fecha `as.character`. El siguiente gráfico muestra la variación de la tasa de paro en Murcia durante los años 2011 y 2015, separado por hombres y mujeres. 
+De cara a realizar un gráfico, voy a sustituir todos los `Qi` por su correspondiente fecha `as.character`. El siguiente gráfico muestra la variación de la tasa de paro en Murcia durante los años 2011 y 2015, separado por facetas (hombres y mujeres). 
 
 ```{r echo= FALSE}
-murcia$Periodo <- as.character(murcia$Periodo)
-murcia$Periodo <- gsub("Q1", "-03-31", murcia$Periodo)
-murcia$Periodo <- gsub("Q2", "-06-30", murcia$Periodo)
-murcia$Periodo <- gsub("Q3", "-09-30", murcia$Periodo)
-murcia$Periodo <- gsub("Q4", "-12-31", murcia$Periodo)
-murcia$Periodo <- as.Date(murcia$Periodo)
-
 murdcast$Periodo <- as.character(murdcast$Periodo)
 murdcast$Periodo <- gsub("Q1", "-03-31", murdcast$Periodo)
 murdcast$Periodo <- gsub("Q2", "-06-30", murdcast$Periodo)
@@ -187,14 +195,121 @@ graf <- ggplot(murdcast, aes(x = Periodo, y = tasa.paro)) +
 ```
 
 ```{r fig.align="center",message = FALSE, echo = FALSE}
-graf 
+graf + theme_economist() + scale_colour_economist()
 ```
 
 Como podemos ver, la tasa de paro en hombres es menor que la de mujeres. Esto puede deberse a varios factores. Por ejemplo, **generalizando**, las personas que trabajan en la agricultura son, en su mayoría, inmigrantes de África que no conocen el idioma. En este caso, la cantidad de hombres que eligen trabajar en la agricultura es mayor que la de mujeres. Los hombres estarían asegurados por la empresa (o por sí mismos) y cotizando a la seguridad social, mientras que las mujeres inmigrantes en Murcia tienden más al cuidado de personas o a la limpieza de hogares, muchas de ellas (lamentablemente) no tienen contrato, por diversas causas. Esto hace que las mujeres aparezcan más como desempleadas. Es una de las razones que se me ocurren, aunque habrá muchísimas más. Con los datos de los que dispongo aquí, no puedo hacer un análisis sobre por qué los hombre están menos desempleados que las mujeres. 
 
+```{r echo= FALSE}
+paro$Periodo <- as.character(paro$Periodo)
+paro$Periodo <- gsub("Q1", "-03-31", paro$Periodo)
+paro$Periodo <- gsub("Q2", "-06-30", paro$Periodo)
+paro$Periodo <- gsub("Q3", "-09-30", paro$Periodo)
+paro$Periodo <- gsub("Q4", "-12-31", paro$Periodo)
+paro$Periodo <- as.Date(paro$Periodo)
+
+comparacion <- paro[paro$Provinces=="30 Murcia" | paro$Provinces=="28 Madrid",]
+dcomparacion <- dcast(comparacion, Provinces + Gender+Periodo~Situation)
+dcomparacion$tasa.paro <- 100 * dcomparacion$unemployed / dcomparacion$active
+graf1 <- ggplot(dcomparacion, aes(x = Periodo, y = tasa.paro, col = Gender)) +    
+  geom_line()+geom_smooth(alpha = 0.15, method = 'auto')+facet_wrap(~Provinces)
+```
+
+```{r fig.align="center",message = FALSE, echo = FALSE}
+graf1 + theme_economist() + scale_colour_economist()
+```
+
+Como podemos ver, en ambas provincias aumenta la tasa de paro en los años más duros de la crisis. Sin embargo, es en Madrid donde menos paro hay. Recientes estudios demuestran que la Comunidad de Madrid, desde el año 1996, se ha "aprovechado" del grandísimo invento que son las autonomías para rebajar su carga impositiva y atraer a más inversores y a más empresas. La baja fiscalidad de Madrid, que se sitúa hoy en el puesto número 2 del Índice autómico de competitividad fiscal, hace de esta comunidad una especie de "oasis" para las empresas, que vienen a invertir y a crear puestos de trabajo, tanto modernos y tecnológicos como los usuales que estamos acostumbrados a ver. 
+
+Murcia, sin embargo, ocupa un puesto por debajo de la mitad de la tabla: 11 sobre 19. Los casos de corrupción han perjudicado a la comunidad, pero también la crisis mundial y las terribles inundaciones en las zonas de costa. La burbuja inmobiliaria afectó como en toda España, claro; sin embargo, al ser una zona que vive casi enteramente del turismo y la agricultura, tener la costa desolada por inundaciones añadido a la crisis mundial y a la decisión de Reino Unido de salir de la Unión Europea ha derivado en que Murcia haya sido una gran afectada durante los años en los que se ha medido la actividad laboral.
+
+<center>
+
+![Caption for the picture.](resources/IACF.jpeg)
+</center>
+
 </div>
 </div>
 
+## **4. Webscrapping: IMDb**
+<div class=text-justify>
+
+``` {r  echo = FALSE}
+#Extracción de url y lectura de formato tabla
+
+url.imdb <- "https://www.imdb.com/chart/top/?ref_=nv_mv_250"
+tmp <- read_html(url.imdb) 
+tmp <- html_nodes(tmp, "table")
+dimension <-sapply(tmp, function(x) dim(html_table(x, fill = TRUE))) 
+IMDB <- html_table(tmp[[1]])
+IMDB1 <- IMDB
+
+#Cambio el nombre a las columnas
+
+names(IMDB)<- c("Posición", "Título", "Rating_IMDb","DontCare", "DontCare1")
+
+#Selección de las columnas que quiero
+  
+IMDB<-IMDB%>%
+  select(Posición, Título, Rating_IMDb)
+
+#Limpieza de la columna título y creación de un contador de posición
+
+vector <- IMDB$Título 
+vector <-   gsub("[0-9]+[.]\n", "", vector)
+vector <-  gsub("\n", "", vector)
+
+IMDB$Título <- vector 
+IMDB$Posición <-1:length(IMDB$Posición)
+tmp1 <- IMDB$Título
+nombre <- tmp1
+nombre <- gsub("[(]", "", nombre)
+nombre <- gsub("[)]", "", nombre)
+Película <- gsub("[1-2][0-9][0-9][0-9]","", nombre)
+Películas <- gsub("[ ][ ]+","", Película)
+
+#Extracción de la fecha de estreno
+tmp1 <- IMDB$Título
+Estreno <- str_extract(tmp1, "[1-2][0-9][0-9][0-9]")
 
 
+#Incorporo la columna Estreno y Nombre a mi tabla  
 
+IMDB$Estreno <- as.numeric(Estreno)
+IMDB$Película <- Películas
+
+#Selecciono columnas Posición, Película, Estreno y  Rating_IMDb
+
+DATABASE <- IMDB%>%
+  select(Posición, Película, Estreno, Rating_IMDb)
+
+```
+
+En este aparatado, voy a hacer `webscrapping` en la web de IMDb. Al hacerlo, queda una tabla bastante desordenada que tenemos que limpiar para que se vea bien lo que queremos:
+
+```{r echo=FALSE, message = FALSE}
+head(IMDB1)
+```
+
+Como vemos, aparece la tabla de IMDb con los nombres de columnas que ellos han elegido, y con un formato horrible. Admemás, la tabla incluye columnas para dar puntuación a cada película online, nosotros no queremos eso. Hacemos un proceso de depurado de los datos y cambiamos nombres de columnas. Creamos una columna sólo para el nombre de la película y otra sólo para el año de lanzamiento: 
+
+```{r echo = FALSE, message = FALSE}
+kable(DATABASE[1:10,]) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+Ahora, quiero mostrar qué triste, y feliz para todos a la vez, fue el año 1994. 
+
+```{r echo = FALSE, message = FALSE}
+kable(DATABASE[Estreno == "1994",]) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+Al final, fue Forrest Gump la que ganó el premio a la mejor película, pero estoy seguro de que ha sido el año más disputado de la historia. Como no podía ser de otra manera (y como imagino que ya sabes y además has visto aquí), la mejor película de la historia (y mi película favorita) no se llevó el premio, pero sí ha ganado el premio de estar primera el el _Hall of Fame_ de toda una generación.
+
+```{r echo = FALSE, message = FALSE}
+kable(DATABASE[1,]) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+</div>
