@@ -32,6 +32,8 @@ library(knitr)#6
 library(kableExtra) #7
 library(stringr) #8
 library(ggthemes) #9
+library(plotly) #10
+library(tmap)   #11
 ```
 
 # **INTRODUCCIÓN**
@@ -149,7 +151,7 @@ paro1 <- paro%>%
 murcia <- paro1%>%
   select(Gender, Periodo, Situation, value)
 murdcast <- dcast(murcia, Gender+Periodo~Situation)
-#head(murdcast)
+
 ```
 
 Voy a evaluar los datos de paro en Murcia a lo largo de la historia (léase historia como el periodo tiempo que incluye el archivo). La siguiente tabla incluye todas las variables que presenta el archivo paro.
@@ -312,4 +314,16 @@ kable(DATABASE[1,]) %>%
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
+Aquí, presentamos un gráfico dinámico en el que aparecen las 10 películas mejor valoradas de la historia.
+
+```{r , echo=FALSE, message=FALSE, warning = FALSE}
+
+toppelis<-DATABASE[1:10,]
+
+plot_ly(data = toppelis, x = ~Estreno, y = ~Rating_IMDb, color = ~Película, type = "scatter", mode = "markers", size = 30) %>%
+  layout(title = 'Películas', 
+         xaxis = list(title = 'Año'),
+         yaxis = list(title = "Rating"))
+
+```
 </div>
